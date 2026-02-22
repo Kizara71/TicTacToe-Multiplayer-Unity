@@ -1,5 +1,6 @@
 using Unity.Mathematics;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameVisualManger : NetworkBehaviour
@@ -7,11 +8,35 @@ public class GameVisualManger : NetworkBehaviour
     private const float GRID_CELL_SIZE = 3.1f;
     [SerializeField ] private Transform crossPrefab;
     [SerializeField ] private Transform circlePrefab;
+    [SerializeField ] private Transform lineCompletePrefab;    
 
     void Start()
     {
         GameManger.Instance.OnGridPositionClicked += GameManger_OnClickedGridPosition;
+        GameManger.Instance.OnGameWin += GameManger_OnGameWin;
     }
+
+    void GameManger_OnGameWin(object sender, GameManger.OnGameWinEventArgs e)
+    {
+        float eulerAngleZ = 0f; 
+        switch(e.winDirection)
+        {
+            case GameManger.Direction.Horizontal:
+                eulerAngleZ = 90f;
+                break;
+            case GameManger.Direction.Vertical:
+                eulerAngleZ = 0f;
+                break;
+            case GameManger.Direction.DiagonalLeftToRight:
+                eulerAngleZ = 45f;
+                break;
+            case GameManger.Direction.DiagonalRightToLeft:
+                eulerAngleZ = -45f;
+                break;
+        }   
+        Transform lineComplete = Instantiate(lineCompletePrefab , GetGridWorldPosition(e.centerGridPosition.x , e.centerGridPosition.y) , quaternion.Euler(0f, 0f, eulerAngleZ));
+        lineComplete.GetComponent<NetworkObject>().Spawn(true);
+    }   
 
     void GameManger_OnClickedGridPosition(object sender , GameManger.OnClickedGridPositionEventArgs e)
     {
