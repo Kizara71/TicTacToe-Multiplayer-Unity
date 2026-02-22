@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentVersion: 1.00
   subtype: tictactoengofree
-  lastShownTimestamp: 1771682573
+  lastShownTimestamp: 1771794701
   lastUpdateResponse:
     version: 1.00
     versionUrl: https://unitycodemonkey.com
-  checkedLastUpdateTimestamp: 1771682573
+  checkedLastUpdateTimestamp: 1771794701
   lastQOTDResponse:
     questionId: 274
     questionText: What is JSON and what is it useful for?
@@ -27,26 +27,26 @@ MonoBehaviour:
     answerC: Jumping-Signal Over Nonce, crypto concept
     answerD: 
     answerE: 
-  lastQotdTimestamp: 1771682573
+  lastQotdTimestamp: 1771794701
   lastDynamicHeaderResponse:
     topImageUrl: https://codemonkeyexternal.blob.core.windows.net/external/Misc/gameDevReport_2.png
     topText: Stay up to date with the latest in Game Dev straight to your inbox!
     topLink: gamedevreport
     bottomText: My 10+ Years of C# Knowledge in 1 Course!
     bottomLink: csharpcourse
-  lastDynamicHeaderTimestamp: 1771682573
+  lastDynamicHeaderTimestamp: 1771794701
   websiteLatestMessage:
     text: <a href="https://cmonkey.co/freecourses">Check out all my FREE courses!
       Click here!</a>
-  websiteLatestMessageTimestamp: 1771682573
+  websiteLatestMessageTimestamp: 1771794701
   websiteLatestVideos:
     videos:
+    - youTubeId: 0ER2bxCoP2Q
+      title: Unity CEO says AI will soon make ENTIRE games?
     - youTubeId: qzfsN2tm9ss
       title: Add Photo Mode to your Games! (FREE Download, Players will LOVE it!)
     - youTubeId: cYM059zGSrs
       title: 100 Steam Game Marketing Questions Answered to help you find SUCCESS!
     - youTubeId: PBDBKTwZI8Y
       title: TOP 10 FREE NEW Assets FEBRUARY 2026!
-    - youTubeId: Vb5BZu7TOIk
-      title: 8 QUICK Game Dev Tips for SUCCESS!
-  websiteLatestVideosTimestamp: 1771682573
+  websiteLatestVideosTimestamp: 1771794701
