@@ -21,7 +21,8 @@ public class GameManger : NetworkBehaviour
     private PlayerType localPlayerType;
     private NetworkVariable<PlayerType> currentPlayerableType = new NetworkVariable<PlayerType>();    
     private PlayerType[,] playerTypeArray;
-
+    private NetworkVariable<int> crossPlayerScore = new NetworkVariable<int>(); 
+    private NetworkVariable<int> circlePlayerScore = new NetworkVariable<int>(); 
 
     // Events
     public event EventHandler<OnClickedGridPositionEventArgs> OnGridPositionClicked;
@@ -38,7 +39,11 @@ public class GameManger : NetworkBehaviour
     {
         public Vector2Int centerGridPosition;
         public Direction winDirection;
+        public PlayerType winnerPlayerType;
     }
+    public event EventHandler OnRematch;
+    public event EventHandler OnGameDraw;
+    public event EventHandler OnScoreChanged;
     public static GameManger Instance { get; private set; }
     void Awake()
     {
@@ -72,6 +77,16 @@ public class GameManger : NetworkBehaviour
         currentPlayerableType.OnValueChanged += (PlayerType oldValue, PlayerType newValue) => {
             OnCurrentPlayerableTypeChanged?.Invoke(this, EventArgs.Empty);
             Debug.Log("Current playerable type changed from " + oldValue + " to " + newValue);
+        };
+
+        crossPlayerScore.OnValueChanged += (int oldValue, int newValue) => {
+            OnScoreChanged?.Invoke(this, EventArgs.Empty);
+            Debug.Log("Cross player score changed from " + oldValue + " to " + newValue);
+        };
+
+        circlePlayerScore.OnValueChanged += (int oldValue, int newValue) => {
+            OnScoreChanged?.Invoke(this, EventArgs.Empty);
+            Debug.Log("Circle player score changed from " + oldValue + " to " + newValue);
         };
     }
 
@@ -137,11 +152,19 @@ public class GameManger : NetworkBehaviour
         {
             if(TestWinnerLine(playerTypeArray[0, y], playerTypeArray[1, y], playerTypeArray[2, y]))
             {
+                PlayerType winnerPlayerType = playerTypeArray[0, y];
                 Debug.Log("Winner is : " + playerTypeArray[0, y]);
-                OnGameWin?.Invoke(this, new OnGameWinEventArgs {
-                    centerGridPosition = new Vector2Int(1, y),
-                    winDirection = Direction.Horizontal
-                });
+                
+                if (winnerPlayerType == PlayerType.Cross)
+                {
+                    crossPlayerScore.Value++;
+                }
+                else
+                {
+                    circlePlayerScore.Value++;
+                }
+                
+                TriggerOnGameWinRpc(new Vector2Int(1, y), Direction.Horizontal, winnerPlayerType);
                 return;
             }
         }
@@ -151,11 +174,19 @@ public class GameManger : NetworkBehaviour
         {
             if(TestWinnerLine(playerTypeArray[x, 0], playerTypeArray[x, 1], playerTypeArray[x, 2]))
             {
+                PlayerType winnerPlayerType = playerTypeArray[x, 0];
                 Debug.Log("Winner is : " + playerTypeArray[x, 0]);
-                OnGameWin?.Invoke(this, new OnGameWinEventArgs {
-                    centerGridPosition = new Vector2Int(x, 1),
-                    winDirection = Direction.Vertical
-                });
+                
+                if (winnerPlayerType == PlayerType.Cross)
+                {
+                    crossPlayerScore.Value++;
+                }
+                else
+                {
+                    circlePlayerScore.Value++;
+                }
+                
+                TriggerOnGameWinRpc(new Vector2Int(x, 1), Direction.Vertical , winnerPlayerType);
                 return;
             }
         }
@@ -163,23 +194,91 @@ public class GameManger : NetworkBehaviour
         // Test diagonals
         if(TestWinnerLine(playerTypeArray[0, 0], playerTypeArray[1, 1], playerTypeArray[2, 2]))
         {
+            PlayerType winnerPlayerType = playerTypeArray[0, 0];
+             if (winnerPlayerType == PlayerType.Cross)
+                {
+                    crossPlayerScore.Value++;
+                }
+                else
+                {
+                    circlePlayerScore.Value++;
+                }
             Debug.Log("Winner is : " + playerTypeArray[0, 0]);
-            OnGameWin?.Invoke(this, new OnGameWinEventArgs {
-                centerGridPosition = new Vector2Int(1, 1),
-                winDirection = Direction.DiagonalLeftToRight
-            });
+            TriggerOnGameWinRpc(new Vector2Int(1, 1), Direction.DiagonalLeftToRight , winnerPlayerType);
             return;
         }
         if(TestWinnerLine(playerTypeArray[2, 0], playerTypeArray[1, 1], playerTypeArray[0, 2]))
         {
+            PlayerType winnerPlayerType = playerTypeArray[2, 0];
+             if (winnerPlayerType == PlayerType.Cross)
+                {
+                    crossPlayerScore.Value++;
+                }
+                else
+                {
+                    circlePlayerScore.Value++;
+                }
             Debug.Log("Winner is : " + playerTypeArray[2, 0]);
-            OnGameWin?.Invoke(this, new OnGameWinEventArgs {
-                centerGridPosition = new Vector2Int(1, 1),
-                winDirection = Direction.DiagonalRightToLeft
-            });
+            TriggerOnGameWinRpc(new Vector2Int(1, 1), Direction.DiagonalRightToLeft , winnerPlayerType  );
             return;
         }
+
+        bool isDraw = true;
+        for(int x = 0; x < 3; x++)
+        {
+            for(int y = 0; y < 3; y++)
+            {
+                if(playerTypeArray[x, y] == PlayerType.None)
+                {
+                    isDraw = false;
+                    break;
+                }
+            }
+        }
+        if(isDraw)
+        {
+             Debug.Log("Game is a draw !");
+             TriggerOnGameDrawRpc();
+        }
     }   
+
+    [Rpc(SendTo.ClientsAndHost)]
+    void TriggerOnGameDrawRpc()
+    {
+        OnGameDraw?.Invoke(this, EventArgs.Empty);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnGameWinRpc(Vector2Int centerGridPosition, Direction winDirection , PlayerType winnerPlayerType)
+    {
+        OnGameWin?.Invoke(this, new OnGameWinEventArgs {
+            centerGridPosition = centerGridPosition,
+            winDirection = winDirection,
+            winnerPlayerType = winnerPlayerType
+        });
+    }
+
+    // only the server can call this method and it will reset the game state and notify all clients to update their UI accordingly
+    [Rpc(SendTo.Server)]
+    public void RematchRpc()
+    {
+        for(int x = 0; x < 3; x++)
+        {
+            for(int y = 0; y < 3; y++)
+            {
+                playerTypeArray[x, y] = PlayerType.None;
+            }
+        }
+        // can make it random or keep the same player starting first
+        currentPlayerableType.Value = PlayerType.Cross;
+        TriggerOnRematchRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    void TriggerOnRematchRpc()
+    {
+        OnRematch?.Invoke(this, EventArgs.Empty);
+    }
 
     public PlayerType GetLocalPlayerType()
     {
@@ -189,5 +288,11 @@ public class GameManger : NetworkBehaviour
     public PlayerType GetCurrentPlayerableType()
     {
         return currentPlayerableType.Value;
+    }
+
+    public void GetScore(out int crossScore, out int circleScore)
+    {
+        crossScore = crossPlayerScore.Value;
+        circleScore = circlePlayerScore.Value;
     }
 }
