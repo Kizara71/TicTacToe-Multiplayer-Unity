@@ -44,6 +44,7 @@ public class GameManger : NetworkBehaviour
     public event EventHandler OnRematch;
     public event EventHandler OnGameDraw;
     public event EventHandler OnScoreChanged;
+    public event EventHandler OnPlacedSymbol;
     public static GameManger Instance { get; private set; }
     void Awake()
     {
@@ -127,6 +128,7 @@ public class GameManger : NetworkBehaviour
              x = x, y = y  , playerType = playerType
         });
 
+    
         // Switch to the other player after a successful click
         if (currentPlayerableType.Value == PlayerType.Cross)
         {
@@ -136,8 +138,14 @@ public class GameManger : NetworkBehaviour
         {
             currentPlayerableType.Value  = PlayerType.Cross;
         }
-
+        TriggerOnPlacedSymbolRpc();
         TestWinner();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnPlacedSymbolRpc()
+    {
+        OnPlacedSymbol?.Invoke(this, EventArgs.Empty);
     }
 
     private bool TestWinnerLine(PlayerType aPlayerType , PlayerType bPlayerType , PlayerType cPlayerType)
