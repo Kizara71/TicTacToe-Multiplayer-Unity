@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class GameOverUI : MonoBehaviour
 {
@@ -9,6 +10,8 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] private Color loseColor;
     [SerializeField] private Color drawColor;
     [SerializeField] private Button rematchButton;
+    [SerializeField] private RectTransform mainPanel;
+    private Sequence flagSequence;
 
     void Awake()
     {
@@ -56,10 +59,34 @@ public class GameOverUI : MonoBehaviour
     private void Show()
     {
         gameObject.SetActive(true);
+        StartFlagWave();
     }
 
     private void Hide()
     {
+        flagSequence?.Kill();
         gameObject.SetActive(false);
+    }
+
+    private void StartFlagWave()
+    {
+        // Ensure the pivot is handled on the mainPanel
+        mainPanel.localRotation = Quaternion.identity;
+        mainPanel.localScale = Vector3.one;
+        flagSequence?.Kill();
+
+        flagSequence = DOTween.Sequence();
+
+        // 1. The Hinge Motion: Rotate the whole panel back and forth
+        flagSequence.Append(mainPanel.DORotate(new Vector3(0, 0, 4f), 1.2f).SetEase(Ease.InOutQuad))
+                    .Append(mainPanel.DORotate(new Vector3(0, 0, -4f), 1.2f).SetEase(Ease.InOutQuad));
+
+        // 2. The Flutter: Join a scale tween to make the "fabric" stretch slightly
+        // Scaling only X makes it look like it's catching wind
+        flagSequence.Join(mainPanel.DOScaleX(1.1f, 0.6f).SetEase(Ease.InOutSine).SetLoops(4, LoopType.Yoyo))
+                    .SetLoops(-1); // Infinite loop
+                    
+        // 3. Optional: Add a subtle vertical bob
+        flagSequence.Join(mainPanel.DOAnchorPosY(mainPanel.anchoredPosition.y + 10f, 0.8f).SetEase(Ease.InOutSine).SetLoops(-1, LoopType.Yoyo));
     }
 }

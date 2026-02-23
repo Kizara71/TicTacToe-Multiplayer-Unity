@@ -22,7 +22,7 @@ public class SoundManger : MonoBehaviour
         else
         {
             Transform loseSFXTransform = Instantiate(loseSFXPrefab);
-            Destroy(loseSFXTransform.gameObject, 8f);
+            Destroy(loseSFXTransform.gameObject, 2f);
         }
     }
 

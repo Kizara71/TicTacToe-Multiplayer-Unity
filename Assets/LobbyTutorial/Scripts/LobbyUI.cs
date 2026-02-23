@@ -16,12 +16,10 @@ public class LobbyUI : MonoBehaviour {
     [SerializeField] private Transform container;
     [SerializeField] private TextMeshProUGUI lobbyNameText;
     [SerializeField] private TextMeshProUGUI playerCountText;
-    [SerializeField] private TextMeshProUGUI gameModeText;
     [SerializeField] private Button changeMarineButton;
     [SerializeField] private Button changeNinjaButton;
     [SerializeField] private Button changeZombieButton;
     [SerializeField] private Button leaveLobbyButton;
-    [SerializeField] private Button changeGameModeButton;
 
 
     private void Awake() {
@@ -43,9 +41,6 @@ public class LobbyUI : MonoBehaviour {
             LobbyManager.Instance.LeaveLobby();
         });
 
-        changeGameModeButton.onClick.AddListener(() => {
-            LobbyManager.Instance.ChangeGameMode();
-        });
     }
 
     private void Start() {
@@ -87,11 +82,8 @@ public class LobbyUI : MonoBehaviour {
             lobbyPlayerSingleUI.UpdatePlayer(player);
         }
 
-        changeGameModeButton.gameObject.SetActive(LobbyManager.Instance.IsLobbyHost());
 
-        lobbyNameText.text = lobby.Name;
         playerCountText.text = lobby.Players.Count + "/" + lobby.MaxPlayers;
-        gameModeText.text = lobby.Data[LobbyManager.KEY_GAME_MODE].Value;
 
         Show();
     }

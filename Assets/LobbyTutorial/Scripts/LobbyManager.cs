@@ -195,25 +195,26 @@ public class LobbyManager : MonoBehaviour {
         }
     }
 
-    public async void CreateLobby(string lobbyName, int maxPlayers, bool isPrivate, GameMode gameMode) {
+    // Inside LobbyManager.cs
+    public async void CreateLobby(string lobbyName, bool isPrivate) {
         Player player = GetPlayer();
+        int maxPlayers = 2; // Hardcoded for Tic-Tac-Toe
 
         CreateLobbyOptions options = new CreateLobbyOptions {
             Player = player,
-            IsPrivate = isPrivate,
-            Data = new Dictionary<string, DataObject> {
-                { KEY_GAME_MODE, new DataObject(DataObject.VisibilityOptions.Public, gameMode.ToString()) }
-            }
+            IsPrivate = isPrivate
+            // Dictionary for GameMode removed here to simplify
         };
 
-        Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, options);
-
-        joinedLobby = lobby;
-
-        OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
-
-        Debug.Log("Created Lobby " + lobby.Name);
-    }
+        try {
+            Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, options);
+            joinedLobby = lobby;
+            OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
+            Debug.Log("Created Lobby " + lobby.Name);
+        } catch (LobbyServiceException e) {
+            Debug.Log(e);
+        }
+}
 
     public async void RefreshLobbyList() {
         try {

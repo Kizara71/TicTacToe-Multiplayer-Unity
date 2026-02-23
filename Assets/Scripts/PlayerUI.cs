@@ -1,5 +1,7 @@
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerUI : MonoBehaviour
 {
@@ -11,12 +13,12 @@ public class PlayerUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI circlePlayerScoreText;
     void Awake()
     {
-        crossArrowGameObject.SetActive(false);
-        circleArrowGameObject.SetActive(false);
+        crossArrowGameObject.GetComponent<Image>().color = Color.black;
+        circleArrowGameObject.GetComponent<Image>().color = Color.black;
         crossTextGameObject.SetActive(false);
         circleTextGameObject.SetActive(false);
-        crossPlayerScoreText.text = "";
-        circlePlayerScoreText.text = "";
+        crossPlayerScoreText.text = "0";
+        circlePlayerScoreText.text = "0";
     }
 
     void Start()
@@ -54,13 +56,13 @@ public class PlayerUI : MonoBehaviour
     {
         if(GameManger.Instance.GetCurrentPlayerableType() == GameManger.PlayerType.Cross)
         {
-            crossArrowGameObject.SetActive(true);
-            circleArrowGameObject.SetActive(false);
+            crossArrowGameObject.GetComponent<Image>().color = Color.white;
+            circleArrowGameObject.GetComponent<Image>().color = Color.black;
         }
         else
         {
-            crossArrowGameObject.SetActive(false);
-            circleArrowGameObject.SetActive(true);
+            crossArrowGameObject.GetComponent<Image>().color = Color.black;
+            circleArrowGameObject.GetComponent<Image>().color = Color.white;
         }
     }
 }
