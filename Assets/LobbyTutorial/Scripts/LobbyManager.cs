@@ -127,16 +127,22 @@ public class LobbyManager : MonoBehaviour {
 
                 // --- THE NEW AUTO-START LOGIC ---
                 if (!isGameStarting) {
-                    // If HOST and 2 players are here, start Relay!
                     if (IsLobbyHost() && joinedLobby.Players.Count == 2) {
+                        Debug.Log("Host detected 2 players. Starting Relay...");
                         isGameStarting = true;
                         OnLobbyStartGame?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
                     }
-                    // If CLIENT and the Host has published the Relay code, join Relay!
-                    else if (!IsLobbyHost() && joinedLobby.Data != null && joinedLobby.Data.ContainsKey("RelayJoinCode")) {
-                        isGameStarting = true;
-                        this.relayJoinCode = joinedLobby.Data["RelayJoinCode"].Value;
-                        OnLobbyStartGame?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
+                    else if (!IsLobbyHost() && joinedLobby.Data != null) {
+                        
+                        // Let's print out what the client actually sees!
+                        Debug.Log("Client polling... Lobby Data Keys: " + string.Join(", ", joinedLobby.Data.Keys));
+                        
+                        if (joinedLobby.Data.ContainsKey("RelayJoinCode")) {
+                            Debug.Log("Client found the Relay Join Code: " + joinedLobby.Data["RelayJoinCode"].Value);
+                            isGameStarting = true;
+                            this.relayJoinCode = joinedLobby.Data["RelayJoinCode"].Value;
+                            OnLobbyStartGame?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
+                        }
                     }
                 }
             }
@@ -373,12 +379,14 @@ public class LobbyManager : MonoBehaviour {
     public async Task SetRelayJoinCode(string relayJoinCode) {
         this.relayJoinCode = relayJoinCode;
         try {
-            // Publish the Relay code to the Lobby Data
+            Debug.Log("Host is publishing Relay code to Lobby: " + relayJoinCode);
+            // Changed from Member to Public to bypass cloud permission delays
             joinedLobby = await LobbyService.Instance.UpdateLobbyAsync(joinedLobby.Id, new UpdateLobbyOptions {
                 Data = new Dictionary<string, DataObject> {
-                    { "RelayJoinCode", new DataObject(DataObject.VisibilityOptions.Member, relayJoinCode) }
+                    { "RelayJoinCode", new DataObject(DataObject.VisibilityOptions.Public, relayJoinCode) }
                 }
             });
+            Debug.Log("Host successfully updated Lobby Data!");
         } catch (LobbyServiceException e) {
             Debug.Log(e);
         }

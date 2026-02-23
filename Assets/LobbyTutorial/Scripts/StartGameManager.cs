@@ -5,6 +5,7 @@ using UnityEngine;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
+using System.Threading.Tasks;
 
 public class StartGameManager : MonoBehaviour 
 {
@@ -26,8 +27,12 @@ public class StartGameManager : MonoBehaviour
         }
     }
 
-    public void StartHost() {
+    public async void StartHost() {
         NetworkManager.Singleton.StartHost();
+        
+        // Give the Relay connection half a second to securely bind
+        await Task.Delay(500); 
+        
         // Force the network to load the GameScene for all connected players!
         NetworkManager.Singleton.SceneManager.LoadScene("GameScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
@@ -46,7 +51,7 @@ public class StartGameManager : MonoBehaviour
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
             Debug.Log("Allocated Relay JoinCode: " + joinCode);
             
-            RelayServerData relayServerData = AllocationUtils.ToRelayServerData(allocation, "dtls");
+            RelayServerData relayServerData = AllocationUtils.ToRelayServerData(allocation, "udp");
             
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
             
@@ -64,12 +69,14 @@ public class StartGameManager : MonoBehaviour
     {
         try 
         {
+            Debug.Log("Client is executing JoinRelay with code: " + joinCode);
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
             
-            RelayServerData relayServerData = AllocationUtils.ToRelayServerData(joinAllocation, "dtls");
+            RelayServerData relayServerData = AllocationUtils.ToRelayServerData(joinAllocation, "udp");
             
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
             
+            Debug.Log("Client successfully configured transport. Starting Client...");
             StartClient();
         } 
         catch (RelayServiceException e) 
