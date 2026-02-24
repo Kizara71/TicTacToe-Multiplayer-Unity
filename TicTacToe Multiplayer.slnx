@@ -1,5 +1,4 @@
 ﻿<Solution>
-  <Project Path="CodeMonkeyFree.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="CFXRRuntime.csproj" />
   <Project Path="CFXRDemo.csproj" />
